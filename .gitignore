@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.env
+*.log
+build_dashboard.py
+start_dashboard.ps1
+Relatorio_Vendas*
+_g*.png
+_d*.png
+.streamlit/secrets.toml
