@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Curva ABC - Simples</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background: #f0f0f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .classe-A { background-color: #90EE90 !important; }
+        .classe-B { background-color: #FFD700 !important; }
+        .classe-C { background-color: #FFB6C1 !important; }
+        #resultado {
+            margin-top: 20px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat-card {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            min-width: 200px;
+        }
+        .stat-card h3 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .stat-card p {
+            margin: 5px 0 0 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste Curva ABC - Versão Simples</h1>
+    
+    <div class="upload-area" id="uploadArea">
+        <p>📁 Arraste o arquivo Excel aqui ou clique para selecionar</p>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+    </div>
+
+    <div id="resultado"></div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const resultado = document.getElementById('resultado');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#4CAF50';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#ccc';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            if (e.dataTransfer.files.length) {
+                processFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                processFile(e.target.files[0]);
+            }
+        });
+
+        function processFile(file) {
+            console.log('📁 Arquivo:', file.name);
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                try {
+                    console.log('📖 Lendo arquivo...');
+                    const data = e.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    console.log('📄 Planilhas:', workbook.SheetNames);
+                    
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    console.log('📊 Linhas:', jsonData.length);
+                    console.log('🔍 Primeira linha:', jsonData[0]);
+
+                    const produtos = jsonData.map(row => ({
+                        codigo: row['Código'] || row['Codigo'] || row['codigo'] || '',
+                        descricao: row['Descrição'] || row['Descricao'] || row['descricao'] || row['Produto'] || '',
+                        quantidade: parseFloat(row['Quantidade'] || row['quantidade'] || row['Qtd'] || 0),
+                        valorUnitario: parseFloat(row['Valor Unitário'] || row['Valor Unitario'] || row['Preço'] || row['Preco'] || 0),
+                        valorTotal: 0
+                    }));
+
+                    produtos.forEach(p => p.valorTotal = p.quantidade * p.valorUnitario);
+                    produtos.sort((a, b) => b.valorTotal - a.valorTotal);
+
+                    const valorTotal = produtos.reduce((sum, p) => sum + p.valorTotal, 0);
+                    console.log('💰 Valor Total:', valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+
+                    let acumulado = 0;
+                    const produtosABC = produtos.map((p, i) => {
+                        const percentualValor = (p.valorTotal / valorTotal) * 100;
+                        const acumuladoAnterior = acumulado;
+                        acumulado += percentualValor;
+
+                        let classificacao;
+                        if (acumuladoAnterior < 80) classificacao = 'A';
+                        else if (acumuladoAnterior < 95) classificacao = 'B';
+                        else classificacao = 'C';
+
+                        if (i < 3) {
+                            console.log(`${i + 1}º: ${p.descricao} - ${classificacao} - ${percentualValor.toFixed(2)}% - Acum: ${acumulado.toFixed(2)}%`);
+                        }
+
+                        return { ...p, percentualValor, percentualAcumulado: acumulado, classificacao };
+                    });
+
+                    const categorias = {
+                        A: produtosABC.filter(p => p.classificacao === 'A'),
+                        B: produtosABC.filter(p => p.classificacao === 'B'),
+                        C: produtosABC.filter(p => p.classificacao === 'C')
+                    };
+
+                    console.log('✅ Classe A:', categorias.A.length, 'produtos');
+                    console.log('✅ Classe B:', categorias.B.length, 'produtos');
+                    console.log('✅ Classe C:', categorias.C.length, 'produtos');
+
+                    mostrarResultado(produtosABC, valorTotal, categorias);
+
+                } catch (error) {
+                    console.error('❌ Erro:', error);
+                    alert('Erro ao processar arquivo: ' + error.message);
+                }
+            };
+
+            reader.readAsBinaryString(file);
+        }
+
+        function mostrarResultado(produtos, valorTotal, categorias) {
+            let html = '<div class="stats">';
+            html += `<div class="stat-card" style="background: #e8f5e9;"><h3>${produtos.length}</h3><p>Total de Produtos</p></div>`;
+            html += `<div class="stat-card" style="background: #fff3e0;"><h3>${valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</h3><p>Valor Total</p></div>`;
+            html += `<div class="stat-card" style="background: #c8e6c9;"><h3>${categorias.A.length}</h3><p>Classe A (${((categorias.A.length/produtos.length)*100).toFixed(1)}%)</p></div>`;
+            html += `<div class="stat-card" style="background: #fff9c4;"><h3>${categorias.B.length}</h3><p>Classe B (${((categorias.B.length/produtos.length)*100).toFixed(1)}%)</p></div>`;
+            html += `<div class="stat-card" style="background: #ffcdd2;"><h3>${categorias.C.length}</h3><p>Classe C (${((categorias.C.length/produtos.length)*100).toFixed(1)}%)</p></div>`;
+            html += '</div>';
+
+            html += '<table><thead><tr>';
+            html += '<th>Código</th><th>Descrição</th><th>Qtd</th><th>Valor Unit.</th><th>Valor Total</th>';
+            html += '<th>% Valor</th><th>% Acum.</th><th>Classe</th>';
+            html += '</tr></thead><tbody>';
+
+            produtos.forEach(p => {
+                html += `<tr class="classe-${p.classificacao}">`;
+                html += `<td>${p.codigo}</td>`;
+                html += `<td>${p.descricao}</td>`;
+                html += `<td>${p.quantidade}</td>`;
+                html += `<td>${p.valorUnitario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>`;
+                html += `<td>${p.valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>`;
+                html += `<td>${p.percentualValor.toFixed(2)}%</td>`;
+                html += `<td>${p.percentualAcumulado.toFixed(2)}%</td>`;
+                html += `<td><strong>${p.classificacao}</strong></td>`;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            resultado.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

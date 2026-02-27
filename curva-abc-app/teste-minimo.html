@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Mínimo XLSX</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .log { background: #f0f0f0; padding: 5px; margin: 5px 0; border-left: 3px solid #4CAF50; }
+        .error { border-left-color: red; background: #ffebee; }
+    </style>
+</head>
+<body>
+    <h1>Teste Mínimo XLSX</h1>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+    <div id="logs"></div>
+
+    <script>
+        const log = (msg, isError = false) => {
+            const div = document.createElement('div');
+            div.className = isError ? 'log error' : 'log';
+            div.textContent = msg;
+            document.getElementById('logs').appendChild(div);
+            console.log(msg);
+        };
+
+        log('✅ Script carregado');
+        log('✅ Biblioteca XLSX: ' + (typeof XLSX !== 'undefined' ? 'OK' : 'ERRO'));
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            log('📁 Arquivo selecionado: ' + e.target.files[0].name);
+            
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                try {
+                    log('📖 Leitura iniciada...');
+                    
+                    const data = event.target.result;
+                    log('✅ Dados lidos, tamanho: ' + data.length + ' bytes');
+                    
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    log('✅ Workbook criado, sheets: ' + workbook.SheetNames.join(', '));
+                    
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    log('✅ Worksheet selecionado: ' + sheetName);
+                    
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    log('✅ Dados convertidos, linhas: ' + jsonData.length);
+                    
+                    if (jsonData.length > 0) {
+                        const row = jsonData[0];
+                        log('=== PRIMEIRA LINHA ===');
+                        log('Objeto completo: ' + JSON.stringify(row));
+                        
+                        log('=== CHAVES ===');
+                        Object.keys(row).forEach(key => {
+                            log('  "' + key + '" = ' + row[key] + ' (tipo: ' + typeof row[key] + ')');
+                        });
+                        
+                        log('=== TESTES ===');
+                        log('row["Valor Unitario"] = ' + row['Valor Unitario']);
+                        log('parseFloat(row["Valor Unitario"]) = ' + parseFloat(row['Valor Unitario'] || 0));
+                        
+                        const valorUnitario = parseFloat(row['Valor Unitario'] || 0);
+                        const quantidade = parseFloat(row['Quantidade'] || 0);
+                        const valorTotal = quantidade * valorUnitario;
+                        
+                        log('=== RESULTADO ===');
+                        log('quantidade = ' + quantidade);
+                        log('valorUnitario = ' + valorUnitario);
+                        log('valorTotal = ' + valorTotal);
+                        
+                        if (valorTotal > 0) {
+                            log('🎉 SUCESSO! Valores calculados corretamente!');
+                        } else {
+                            log('❌ ERRO! valorTotal = 0', true);
+                        }
+                    }
+                    
+                } catch (error) {
+                    log('❌ ERRO: ' + error.message, true);
+                    log('Stack: ' + error.stack, true);
+                }
+            };
+            
+            reader.onerror = function(error) {
+                log('❌ Erro na leitura do arquivo: ' + error, true);
+            };
+            
+            log('📂 Iniciando leitura do arquivo...');
+            reader.readAsBinaryString(file);
+        });
+    </script>
+</body>
+</html>

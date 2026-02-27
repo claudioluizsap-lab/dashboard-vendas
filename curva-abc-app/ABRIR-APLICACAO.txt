@@ -1,0 +1,63 @@
+╔══════════════════════════════════════════════════════════════╗
+║          COMO ABRIR A APLICAÇÃO CURVA ABC                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+📂 LOCALIZAÇÃO DO ARQUIVO:
+D:\Users\Claudio\Documents\verdent-projects\new-project\curva-abc-app\dist\index.html
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 MÉTODO 1: Abrir manualmente (RECOMENDADO)
+
+1. Abra o Windows Explorer (Windows + E)
+2. Copie e cole este caminho na barra de endereço:
+   D:\Users\Claudio\Documents\verdent-projects\new-project\curva-abc-app\dist
+3. Dê DUPLO CLIQUE no arquivo "index.html"
+4. A aplicação abrirá no navegador
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🌐 MÉTODO 2: Abrir com navegador
+
+1. Abra o Chrome, Edge ou Firefox
+2. Arraste o arquivo "index.html" para dentro do navegador
+   OU
+3. Pressione Ctrl+O e navegue até o arquivo
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🖥️ MÉTODO 3: Via servidor local (opcional)
+
+1. Abra o PowerShell na pasta do projeto
+2. Execute: cd curva-abc-app
+3. Execute: npm run dev
+4. Acesse: http://localhost:5173
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ FUNCIONALIDADES DA APLICAÇÃO:
+
+• Upload de planilhas Excel (.xlsx)
+• Análise automática de Curva ABC
+• Tabela completa com todos os dados
+• Gráficos de Pizza e Barras
+• Filtros por categoria (A, B, C)
+• Exportação para PDF
+• Modo escuro/claro
+• Configuração de limites personalizados
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 FORMATO DA PLANILHA:
+
+A planilha deve ter estas colunas:
+- Código (ou similar)
+- Descrição (ou similar)
+- Quantidade (ou Qtd)
+- Valor Unitário (ou similar)
+
+O sistema detecta automaticamente os nomes das colunas!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 DICA: Se tiver problemas, use o MÉTODO 1 (manual) que sempre funciona!

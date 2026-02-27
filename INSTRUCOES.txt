@@ -1,0 +1,79 @@
+═══════════════════════════════════════════════════════════════════════════
+    RELATÓRIO ABC DE MERCADORIAS - INSTRUÇÕES DE INSTALAÇÃO E USO
+═══════════════════════════════════════════════════════════════════════════
+
+📋 O QUE É A ANÁLISE ABC?
+─────────────────────────────────────────────────────────────────────────
+A análise ABC (ou Curva ABC) é uma técnica de classificação de itens do 
+estoque baseada no Princípio de Pareto (80/20):
+
+  • CLASSE A: Itens mais importantes (80% do valor/quantidade acumulada)
+  • CLASSE B: Itens intermediários (15% do valor/quantidade)
+  • CLASSE C: Itens menos importantes (5% restante)
+
+═══════════════════════════════════════════════════════════════════════════
+  PASSO 1: INSTALAR O PYTHON
+═══════════════════════════════════════════════════════════════════════════
+
+1. Acesse: https://www.python.org/downloads/
+2. Baixe a versão mais recente do Python para Windows
+3. Durante a instalação:
+   ☑ Marque a opção "Add Python to PATH"
+   ☑ Continue com a instalação padrão
+
+═══════════════════════════════════════════════════════════════════════════
+  PASSO 2: INSTALAR AS BIBLIOTECAS NECESSÁRIAS
+═══════════════════════════════════════════════════════════════════════════
+
+Abra o PowerShell ou Prompt de Comando e execute:
+
+  pip install pandas openpyxl
+
+═══════════════════════════════════════════════════════════════════════════
+  PASSO 3: EXECUTAR O SCRIPT
+═══════════════════════════════════════════════════════════════════════════
+
+No diretório do projeto, execute:
+
+  python gerar_relatorio_abc.py
+
+═══════════════════════════════════════════════════════════════════════════
+  RESULTADO
+═══════════════════════════════════════════════════════════════════════════
+
+O script irá gerar um arquivo Excel chamado:
+
+  📊 Relatorio_ABC_Mercadorias.xlsx
+
+Contendo:
+  • Lista completa de produtos ordenada por quantidade
+  • Percentual individual de cada item
+  • Percentual acumulado
+  • Classificação ABC (A, B ou C) com cores:
+    - Verde: Classe A (mais importantes)
+    - Amarelo: Classe B (intermediários)
+    - Vermelho: Classe C (menos importantes)
+  • Resumo estatístico por classe
+
+═══════════════════════════════════════════════════════════════════════════
+  ARQUIVO DE ENTRADA
+═══════════════════════════════════════════════════════════════════════════
+
+O script lê o arquivo: exemplo_estoque.csv
+
+Formato esperado:
+  Código,Produto,Quantidade
+  P001,Produto A,100
+  P002,Produto B,50
+
+═══════════════════════════════════════════════════════════════════════════
+  SUPORTE
+═══════════════════════════════════════════════════════════════════════════
+
+Em caso de dúvidas ou erros, verifique se:
+  ✓ Python está instalado corretamente
+  ✓ As bibliotecas pandas e openpyxl foram instaladas
+  ✓ O arquivo exemplo_estoque.csv está no mesmo diretório
+  ✓ O arquivo CSV está no formato correto (com vírgulas)
+
+═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Contagem de Estoque</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+    <!-- TOPO FIXO -->
+    <header class="app-header">
+        <span class="app-title">📦 Estoque</span>
+        <button id="themeToggle" class="theme-toggle" aria-label="Alternar tema">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="app-main">
+
+        <!-- TELA 1: Upload (exibida quando sem planilha) -->
+        <div id="uploadScreen" class="screen active">
+            <div class="upload-card">
+                <label for="fileInput" class="upload-label-big">
+                    <div class="upload-icon">📂</div>
+                    <div class="upload-text">Carregar Planilha Excel</div>
+                    <div class="upload-sub">.xlsx ou .xls</div>
+                </label>
+                <input type="file" id="fileInput" accept=".xlsx,.xls" hidden>
+            </div>
+            <div id="fileName" class="file-name-tag"></div>
+        </div>
+
+        <!-- TELA 2: App principal (exibida após upload) -->
+        <div id="appScreen" class="screen">
+
+            <!-- Stats ocultos (usados internamente) -->
+            <div style="display:none;">
+                <span id="totalItems">0</span>
+                <span id="countedItems">0</span>
+                <span id="pendingItems">0</span>
+                <span id="differenceItems">0</span>
+            </div>
+
+            <!-- PAINEL: Contagem -->
+            <div id="panel-count" class="panel active">
+                <div class="search-bar">
+                    <input type="text" id="searchCodigo" class="search-input" placeholder="🏷️ Código" autocomplete="off" inputmode="text">
+                    <input type="text" id="searchProduto" class="search-input" placeholder="📦 Produto" autocomplete="off" inputmode="text">
+                    <div class="search-row-btns">
+                        <button id="searchFormBtn" class="mbtn mbtn-primary">Buscar</button>
+                        <button id="clearFormBtn" class="mbtn mbtn-ghost">Limpar</button>
+                    </div>
+                    <div id="searchFormInfo" class="search-info" style="display:none;"></div>
+                </div>
+
+                <!-- Card de contagem -->
+                <div id="inlineCountCard" class="count-card" style="display:none;">
+                    <div class="count-card-top">
+                        <div class="inline-count-badge" id="inlineCountStatus"></div>
+                        <button class="count-card-close" id="inlineCountClose">✕</button>
+                    </div>
+                    <div class="count-card-codigo" id="inlineCountCodigo"></div>
+                    <div class="count-card-produto" id="inlineCountProduto"></div>
+                    <div class="count-card-nums">
+                        <div class="count-num-box">
+                            <span class="count-num-label">Sistema</span>
+                            <span class="count-num-val" id="inlineCountSistema"></span>
+                        </div>
+                        <div class="count-num-box">
+                            <span class="count-num-label">Contado</span>
+                            <span class="count-num-val" id="inlineCountAtual"></span>
+                        </div>
+                        <div class="count-num-box">
+                            <span class="count-num-label">Diferença</span>
+                            <span class="count-num-val" id="inlineCountDiff"></span>
+                        </div>
+                    </div>
+                    <div class="count-qty-group">
+                        <label class="count-qty-label">Nova Quantidade</label>
+                        <div class="count-qty-row">
+                            <button class="qty-btn" id="qtyMinus">−</button>
+                            <input type="number" id="inlineQtyInput" class="qty-input" min="0" step="1" placeholder="0" inputmode="numeric">
+                            <button class="qty-btn" id="qtyPlus">+</button>
+                        </div>
+                    </div>
+                    <button id="inlineSaveBtn" class="mbtn mbtn-primary mbtn-full">✔ Salvar Contagem</button>
+                    <div class="count-nav-row">
+                        <button id="inlinePrevBtn" class="mbtn mbtn-ghost">← Anterior</button>
+                        <button id="inlineNextBtn" class="mbtn mbtn-ghost">Próximo →</button>
+                    </div>
+                </div>
+
+                <!-- Lista rápida -->
+                <div id="quickList" class="quick-list">
+                    <div class="quick-list-hint">Toque em um item para contar</div>
+                    <div id="quickListBody"></div>
+                </div>
+            </div>
+
+            <!-- PAINEL: Lista -->
+            <div id="panel-list" class="panel">
+                <div class="filter-row">
+                    <button class="mbtn-filter active" data-filter="all">Todos</button>
+                    <button class="mbtn-filter" data-filter="counted">Contados</button>
+                    <button class="mbtn-filter" data-filter="pending">Pendentes</button>
+                    <button class="mbtn-filter" data-filter="difference">Diferença</button>
+                </div>
+                <div class="table-wrap">
+                    <table id="inventoryTable">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Produto</th>
+                                <th>Sist.</th>
+                                <th>Cont.</th>
+                                <th>Dif.</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAINEL: Ações -->
+            <div id="panel-actions" class="panel">
+                <div class="actions-grid">
+                    <button id="reportBtn" class="action-tile action-blue">
+                        <span class="action-icon">📊</span>
+                        <span class="action-label">Relatório</span>
+                    </button>
+                    <button id="exportBtn" class="action-tile action-purple">
+                        <span class="action-icon">📥</span>
+                        <span class="action-label">Exportar Excel</span>
+                    </button>
+                    <button id="resetBtn" class="action-tile action-red">
+                        <span class="action-icon">🗑️</span>
+                        <span class="action-label">Limpar Contagens</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- NAVEGAÇÃO INFERIOR FIXA -->
+    <nav id="bottomNav" class="bottom-nav" style="display:none;">
+        <button class="nav-btn active" data-panel="count">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Contagem</span>
+        </button>
+        <button class="nav-btn" data-panel="list">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Lista</span>
+        </button>
+        <button class="nav-btn" data-panel="actions">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-label">Ações</span>
+        </button>
+    </nav>
+
+    <!-- Modal Relatório -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content report-modal">
+            <span class="close" id="closeReport">&times;</span>
+            <h2>Relatório de Contagem</h2>
+            <div class="modal-body">
+                <div class="report-header">
+                    <div class="report-info">
+                        <div><strong>Data:</strong> <span id="reportDate"></span></div>
+                        <div><strong>Hora:</strong> <span id="reportTime"></span></div>
+                    </div>
+                </div>
+                <div class="report-summary">
+                    <h3>Resumo Geral</h3>
+                    <div class="report-stats">
+                        <div class="report-stat-item"><span class="report-label">Total de Itens:</span><span class="report-value" id="reportTotal">0</span></div>
+                        <div class="report-stat-item"><span class="report-label">Itens Contados:</span><span class="report-value" id="reportCounted">0</span></div>
+                        <div class="report-stat-item"><span class="report-label">Itens Pendentes:</span><span class="report-value" id="reportPending">0</span></div>
+                        <div class="report-stat-item">
+                            <span class="report-label">Progresso:</span>
+                            <span class="report-value" id="reportProgress">0%</span>
+                            <div class="progress-container"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-section">
+                    <h3>Análise de Diferenças</h3>
+                    <div class="report-stats">
+                        <div class="report-stat-item"><span class="report-label">Itens com Diferença:</span><span class="report-value" id="reportDifference">0</span></div>
+                        <div class="report-stat-item"><span class="report-label">Itens com Sobra:</span><span class="report-value positive" id="reportPositive">0</span></div>
+                        <div class="report-stat-item"><span class="report-label">Itens com Falta:</span><span class="report-value negative" id="reportNegative">0</span></div>
+                        <div class="report-stat-item"><span class="report-label">Total da Diferença:</span><span class="report-value" id="reportTotalDiff">0</span></div>
+                    </div>
+                </div>
+                <div class="report-section" id="criticalSection" style="display:none;">
+                    <h3>Itens Críticos</h3>
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead><tr><th>Código</th><th>Produto</th><th>Sistema</th><th>Contado</th><th>Diferença</th></tr></thead>
+                            <tbody id="criticalItemsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="printReportBtn" class="btn btn-primary">Imprimir</button>
+                <button id="exportReportBtn" class="btn btn-info">Exportar PDF</button>
+                <button id="closeReportBtn" class="btn btn-secondary">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

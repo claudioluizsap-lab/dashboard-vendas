@@ -8,3 +8,8 @@ Relatorio_Vendas*
 _g*.png
 _d*.png
 .streamlit/secrets.toml
+
+# Local Netlify folder
+.netlify
+
+.vercel
