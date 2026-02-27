@@ -13,3 +13,15 @@ _d*.png
 .netlify
 
 .vercel
+
+# Pastas de outros projetos
+curva-abc-app/
+dashboard/
+uploads/
+graficos/
+*.pptx
+*.pdf
+*.png
+ngrok.yml
+dashboard_salario.html
+data.json

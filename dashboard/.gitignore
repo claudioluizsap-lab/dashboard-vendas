@@ -1,7 +1,0 @@
-__pycache__/
-*.pyc
-*.pyo
-uploads/
-ngrok_url.txt
-*.log
-.env
