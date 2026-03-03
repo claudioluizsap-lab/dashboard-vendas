@@ -136,6 +136,9 @@ div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; border: 
 
 XLSX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vendas.xlsx')
 
+if 'uploaded_xlsx' not in st.session_state:
+    st.session_state.uploaded_xlsx = None
+
 COLORS = [
     '#388BFD','#3FB950','#F78166','#BC8CFF','#FFA657',
     '#79C0FF','#56D364','#FF7B72','#D2A8FF','#7EE787',
@@ -167,9 +170,11 @@ def ax():
     return dict(gridcolor='#131A26', gridwidth=0.6, linecolor='#1E2736',
                 tickfont=dict(color='#6E7681', size=9), zeroline=False)
 
-@st.cache_data
-def load_data():
-    df_raw = pd.read_excel(XLSX_PATH, sheet_name='Planilha1', header=None)
+@st.cache_data(ttl=300)
+def load_data(file_bytes=None):
+    import io
+    src = io.BytesIO(file_bytes) if file_bytes else XLSX_PATH
+    df_raw = pd.read_excel(src, sheet_name='Planilha1', header=None)
     dates = [pd.to_datetime(v) for v in df_raw.iloc[0, 2:] if pd.notna(v)]
     n = len(dates)
     ml = [d.strftime('%b/%Y') for d in dates]
@@ -199,7 +204,7 @@ def load_data():
     all_funcs = sorted(set(list(qtd_data.keys()) + list(setor_data.keys())))
     return dates, ml, n, qtd_data, setor_data, all_funcs
 
-dates, ml, n, qtd_data, setor_data, all_funcs = load_data()
+dates, ml, n, qtd_data, setor_data, all_funcs = load_data(st.session_state.uploaded_xlsx)
 
 setor_global = {}
 for fd in setor_data.values():
@@ -218,6 +223,16 @@ with st.sidebar:
     <hr style='border-color:#1E2736;margin:8px 0 16px'>
     """, unsafe_allow_html=True)
 
+    uploaded_file = st.file_uploader("📂 Atualizar Planilha (.xlsx)", type=["xlsx"], label_visibility="collapsed")
+    if uploaded_file is not None:
+        new_bytes = uploaded_file.read()
+        if new_bytes != st.session_state.uploaded_xlsx:
+            st.session_state.uploaded_xlsx = new_bytes
+            load_data.clear()
+            st.rerun()
+    src_label = uploaded_file.name if uploaded_file else "vendas.xlsx (padrão)"
+    st.markdown(f"<div style='font-size:9px;color:#6E7681;margin-bottom:8px'>📄 {src_label}</div>", unsafe_allow_html=True)
+
     anos = sorted(set(d.year for d in dates))
     anos_sel = st.multiselect("📅 Ano", anos, default=anos)
 
@@ -235,10 +250,13 @@ with st.sidebar:
     if st.button("🔄 Limpar Filtros", use_container_width=True):
         st.rerun()
 
+    if st.button("⬆ Atualizar Dados", use_container_width=True, type="primary"):
+        load_data.clear()
+        st.rerun()
+
     st.markdown("""
     <div style='text-align:center;margin-top:12px'>
         <div style='font-size:9px;color:#3D444D;letter-spacing:.5px'>FONTE DE DADOS</div>
-        <div style='font-size:10px;color:#6E7681;margin-top:2px'>vendas.xlsx</div>
     </div>
     """, unsafe_allow_html=True)
 
