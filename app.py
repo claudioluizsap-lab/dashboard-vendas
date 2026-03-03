@@ -138,6 +138,8 @@ XLSX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vendas.xls
 
 if 'uploaded_xlsx' not in st.session_state:
     st.session_state.uploaded_xlsx = None
+if 'uploaded_hash' not in st.session_state:
+    st.session_state.uploaded_hash = None
 
 COLORS = [
     '#388BFD','#3FB950','#F78166','#BC8CFF','#FFA657',
@@ -171,9 +173,12 @@ def ax():
                 tickfont=dict(color='#6E7681', size=9), zeroline=False)
 
 @st.cache_data(ttl=300)
-def load_data(file_bytes=None):
-    import io
-    src = io.BytesIO(file_bytes) if file_bytes else XLSX_PATH
+def load_data(file_hash=None):
+    import io, hashlib
+    if st.session_state.get('uploaded_xlsx') is not None:
+        src = io.BytesIO(st.session_state.uploaded_xlsx)
+    else:
+        src = XLSX_PATH
     df_raw = pd.read_excel(src, sheet_name='Planilha1', header=None)
     dates = [pd.to_datetime(v) for v in df_raw.iloc[0, 2:] if pd.notna(v)]
     n = len(dates)
@@ -204,7 +209,7 @@ def load_data(file_bytes=None):
     all_funcs = sorted(set(list(qtd_data.keys()) + list(setor_data.keys())))
     return dates, ml, n, qtd_data, setor_data, all_funcs
 
-dates, ml, n, qtd_data, setor_data, all_funcs = load_data(st.session_state.uploaded_xlsx)
+dates, ml, n, qtd_data, setor_data, all_funcs = load_data(st.session_state.uploaded_hash)
 
 setor_global = {}
 for fd in setor_data.values():
@@ -225,9 +230,12 @@ with st.sidebar:
 
     uploaded_file = st.file_uploader("📂 Atualizar Planilha (.xlsx)", type=["xlsx"], label_visibility="collapsed")
     if uploaded_file is not None:
+        import hashlib
         new_bytes = uploaded_file.read()
-        if new_bytes != st.session_state.uploaded_xlsx:
+        new_hash = hashlib.md5(new_bytes).hexdigest()
+        if new_hash != st.session_state.uploaded_hash:
             st.session_state.uploaded_xlsx = new_bytes
+            st.session_state.uploaded_hash = new_hash
             load_data.clear()
             st.rerun()
     src_label = uploaded_file.name if uploaded_file else "vendas.xlsx (padrão)"
