@@ -136,11 +136,6 @@ div[data-testid="stDataFrame"] { border-radius: 12px; overflow: hidden; border: 
 
 XLSX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vendas.xlsx')
 
-if 'uploaded_xlsx' not in st.session_state:
-    st.session_state.uploaded_xlsx = None
-if 'uploaded_hash' not in st.session_state:
-    st.session_state.uploaded_hash = None
-
 COLORS = [
     '#388BFD','#3FB950','#F78166','#BC8CFF','#FFA657',
     '#79C0FF','#56D364','#FF7B72','#D2A8FF','#7EE787',
@@ -173,13 +168,8 @@ def ax():
                 tickfont=dict(color='#6E7681', size=9), zeroline=False)
 
 @st.cache_data(ttl=300)
-def load_data(file_hash=None):
-    import io, hashlib
-    if st.session_state.get('uploaded_xlsx') is not None:
-        src = io.BytesIO(st.session_state.uploaded_xlsx)
-    else:
-        src = XLSX_PATH
-    df_raw = pd.read_excel(src, sheet_name='Planilha1', header=None)
+def load_data():
+    df_raw = pd.read_excel(XLSX_PATH, sheet_name='Planilha1', header=None)
     dates = [pd.to_datetime(v) for v in df_raw.iloc[0, 2:] if pd.notna(v)]
     n = len(dates)
     ml = [d.strftime('%b/%Y') for d in dates]
@@ -209,7 +199,7 @@ def load_data(file_hash=None):
     all_funcs = sorted(set(list(qtd_data.keys()) + list(setor_data.keys())))
     return dates, ml, n, qtd_data, setor_data, all_funcs
 
-dates, ml, n, qtd_data, setor_data, all_funcs = load_data(st.session_state.uploaded_hash)
+dates, ml, n, qtd_data, setor_data, all_funcs = load_data()
 
 setor_global = {}
 for fd in setor_data.values():
@@ -227,19 +217,6 @@ with st.sidebar:
     </div>
     <hr style='border-color:#1E2736;margin:8px 0 16px'>
     """, unsafe_allow_html=True)
-
-    uploaded_file = st.file_uploader("📂 Atualizar Planilha (.xlsx)", type=["xlsx"], label_visibility="collapsed")
-    if uploaded_file is not None:
-        import hashlib
-        new_bytes = uploaded_file.read()
-        new_hash = hashlib.md5(new_bytes).hexdigest()
-        if new_hash != st.session_state.uploaded_hash:
-            st.session_state.uploaded_xlsx = new_bytes
-            st.session_state.uploaded_hash = new_hash
-            load_data.clear()
-            st.rerun()
-    src_label = uploaded_file.name if uploaded_file else "vendas.xlsx (padrão)"
-    st.markdown(f"<div style='font-size:9px;color:#6E7681;margin-bottom:8px'>📄 {src_label}</div>", unsafe_allow_html=True)
 
     anos = sorted(set(d.year for d in dates))
     anos_sel = st.multiselect("📅 Ano", anos, default=anos)
@@ -265,6 +242,7 @@ with st.sidebar:
     st.markdown("""
     <div style='text-align:center;margin-top:12px'>
         <div style='font-size:9px;color:#3D444D;letter-spacing:.5px'>FONTE DE DADOS</div>
+        <div style='font-size:10px;color:#6E7681;margin-top:2px'>vendas.xlsx</div>
     </div>
     """, unsafe_allow_html=True)
 
