@@ -239,6 +239,16 @@ with st.sidebar:
         load_data.clear()
         st.rerun()
 
+    st.markdown("<div style='font-size:10px;color:#6E7681;margin-top:14px;margin-bottom:4px'>📂 CARREGAR PLANILHA</div>", unsafe_allow_html=True)
+    uploaded = st.file_uploader("", type=["xlsx"], label_visibility="collapsed")
+    if uploaded is not None:
+        import shutil
+        with open(XLSX_PATH, "wb") as f_out:
+            f_out.write(uploaded.getbuffer())
+        load_data.clear()
+        st.success("Planilha atualizada!")
+        st.rerun()
+
     st.markdown("""
     <div style='text-align:center;margin-top:12px'>
         <div style='font-size:9px;color:#3D444D;letter-spacing:.5px'>FONTE DE DADOS</div>
