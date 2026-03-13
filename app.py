@@ -908,12 +908,18 @@ with tab4:
             v = sum(setor_data[func][setor][i] for i in idx_f)
             q = sum(qtd_data.get(func,[0]*n)[i] for i in idx_f)
             if v > 0:
+                ultima = None
+                for i in reversed(idx_f):
+                    if setor_data[func][setor][i] > 0:
+                        ultima = dates[i]
+                        break
                 rows_tab.append({
                     'Funcionario': func, 'Setor': setor,
                     'Qtd Vendas': int(q),
                     'Valor (R$)': round(v, 2),
                     'Ticket Medio': round(v/q, 2) if q else 0,
                     '% da Receita': round(v/total_val*100, 1) if total_val else 0,
+                    'Ultima Entrada': ultima.date() if ultima else None,
                 })
     if rows_tab:
         df_tab = pd.DataFrame(rows_tab).sort_values(
@@ -923,12 +929,13 @@ with tab4:
             hide_index=True,
             height=440,
             column_config={
-                'Funcionario':  st.column_config.TextColumn('Funcionario', width=130),
-                'Setor':         st.column_config.TextColumn('Setor',       width=200),
-                'Qtd Vendas':   st.column_config.NumberColumn('Qtd',        format="%d",      width=90),
-                'Valor (R$)':   st.column_config.NumberColumn('Valor',      format="R$ %.2f", width=140),
-                'Ticket Medio': st.column_config.NumberColumn('Ticket',     format="R$ %.2f", width=130),
-                '% da Receita': st.column_config.ProgressColumn('% Receita',format="%.1f%%",  min_value=0, max_value=100, width=130),
+                'Funcionario':   st.column_config.TextColumn('Funcionario',    width=130),
+                'Setor':         st.column_config.TextColumn('Setor',          width=200),
+                'Qtd Vendas':    st.column_config.NumberColumn('Qtd',          format="%d",      width=90),
+                'Valor (R$)':    st.column_config.NumberColumn('Valor',        format="R$ %.2f", width=140),
+                'Ticket Medio':  st.column_config.NumberColumn('Ticket',       format="R$ %.2f", width=130),
+                '% da Receita':  st.column_config.ProgressColumn('% Receita',  format="%.1f%%",  min_value=0, max_value=100, width=130),
+                'Ultima Entrada': st.column_config.DateColumn('Ultima Entrada', format="DD/MM/YYYY", width=130),
             }
         )
         c_dl1, c_dl2, _ = st.columns([1, 1, 4])
