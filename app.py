@@ -219,7 +219,9 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     anos = sorted(set(d.year for d in dates))
-    anos_sel = st.multiselect("📅 Ano", anos, default=anos)
+    ano_atual = __import__('datetime').datetime.now().year
+    default_anos = [ano_atual] if ano_atual in anos else anos
+    anos_sel = st.multiselect("📅 Ano", anos, default=default_anos)
 
     nomes_meses = {1:'Jan',2:'Fev',3:'Mar',4:'Abr',5:'Mai',6:'Jun',
                    7:'Jul',8:'Ago',9:'Set',10:'Out',11:'Nov',12:'Dez'}
