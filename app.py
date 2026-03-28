@@ -229,8 +229,7 @@ with st.sidebar:
                    7:'Julho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro',12:'Dezembro'}
     meses_disp = sorted(set(d.month for d in dates))
     meses_ano  = sorted(set(d.month for d in dates if d.year in anos_sel)) if anos_sel else meses_disp
-    default_meses = [m for m in meses_ano if m <= mes_atual] if ano_atual in anos_sel else meses_ano
-    if not default_meses: default_meses = meses_ano
+    default_meses = [mes_atual] if mes_atual in meses_disp else meses_disp[:1]
     meses_sel = st.multiselect("🗓 Mês", options=meses_disp, default=default_meses,
         format_func=lambda m: nomes_meses[m])
 
