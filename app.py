@@ -218,16 +218,41 @@ with st.sidebar:
     <hr style='border-color:#1E2736;margin:8px 0 16px'>
     """, unsafe_allow_html=True)
 
-    anos = sorted(set(d.year for d in dates))
-    ano_atual = __import__('datetime').datetime.now().year
-    default_anos = [ano_atual] if ano_atual in anos else anos
-    anos_sel = st.multiselect("📅 Ano", anos, default=default_anos)
-
     nomes_meses = {1:'Jan',2:'Fev',3:'Mar',4:'Abr',5:'Mai',6:'Jun',
                    7:'Jul',8:'Ago',9:'Set',10:'Out',11:'Nov',12:'Dez'}
-    meses_disp = sorted(set(d.month for d in dates))
-    meses_sel = st.multiselect("🗓 Mes", options=meses_disp, default=meses_disp,
-        format_func=lambda m: nomes_meses[m])
+
+    # Todas as combinacoes mes/ano disponiveis nos dados
+    periodos = sorted(set((d.year, d.month) for d in dates))
+    opcoes   = [f"{nomes_meses[m]}/{a}" for a,m in periodos]
+
+    import datetime as _dt
+    hoje = _dt.datetime.now()
+    ano_atual, mes_atual = hoje.year, hoje.month
+
+    # Default: Jan do ano vigente ate mes atual
+    def_ini = f"Jan/{ano_atual}"
+    def_fim = f"{nomes_meses[mes_atual]}/{ano_atual}"
+    if def_ini not in opcoes: def_ini = opcoes[0]
+    if def_fim not in opcoes: def_fim = opcoes[-1]
+
+    st.markdown("<div style='font-size:11px;color:#8B949E;margin-bottom:4px'>📅 PERÍODO</div>", unsafe_allow_html=True)
+    col_ini, col_fim = st.columns(2)
+    with col_ini:
+        st.markdown("<div style='font-size:10px;color:#6E7681'>De</div>", unsafe_allow_html=True)
+        sel_ini = st.selectbox("De", opcoes, index=opcoes.index(def_ini), label_visibility="collapsed", key="sel_ini")
+    with col_fim:
+        st.markdown("<div style='font-size:10px;color:#6E7681'>Até</div>", unsafe_allow_html=True)
+        sel_fim = st.selectbox("Ate", opcoes, index=opcoes.index(def_fim), label_visibility="collapsed", key="sel_fim")
+
+    idx_ini = opcoes.index(sel_ini)
+    idx_fim = opcoes.index(sel_fim)
+    if idx_ini > idx_fim:
+        idx_fim = idx_ini
+        sel_fim = sel_ini
+
+    periodos_sel = periodos[idx_ini:idx_fim+1]
+    anos_sel  = sorted(set(a for a,m in periodos_sel))
+    meses_sel = sorted(set(m for a,m in periodos_sel))
 
     funcs_sel = st.multiselect("👤 Funcionario", all_funcs, default=all_funcs)
     setores_sel = st.multiselect("🏷 Setor", all_setores, default=all_setores)
@@ -259,7 +284,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 # ─────────────────────── CALCULOS ───────────────────────────
-idx_f    = [i for i,d in enumerate(dates) if d.year in anos_sel and d.month in meses_sel]
+idx_f    = [i for i,d in enumerate(dates) if (d.year, d.month) in periodos_sel]
 ml_f     = [ml[i] for i in idx_f]
 dates_f  = [dates[i] for i in idx_f]
 
